@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор упущенной выгоды | AIChat33</title>
+    <style>
+        :root {
+            --bg: #050f2c;
+            --surface: rgba(255,255,255,0.04);
+            --surface-hover: rgba(255,255,255,0.08);
+            --border: rgba(255,255,255,0.09);
+            --blue: #5468ff;
+            --purple: #8e43e7;
+            --green: #4ade80;
+            --orange: #fb923c;
+            --red: #f43f5e;
+            --text: rgba(255,255,255,0.82);
+            --muted: rgba(255,255,255,0.45);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header-top {
+            margin-bottom: 16px;
+        }
+
+        .navbar-logo {
+            display: inline-block;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            text-decoration: none;
+            background: linear-gradient(90deg, #00aeff, #5468ff, #8e43e7, #ff4f81, #5468ff, #00aeff);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: logo-flow 4s linear infinite;
+        }
+
+        @keyframes logo-flow {
+            0% { background-position: 0% center; }
+            100% { background-position: 300% center; }
+        }
+
+        .header-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #ffffff;
+            line-height: 1.2;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            background: var(--surface);
+            padding: 16px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stats-bar span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .calculator-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-wrapper {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 28px; }
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 32px;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label, .result-label {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            color: #ffffff;
+            transition: all 0.2s;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -moz-appearance: textfield;
+        }
+
+        .form-input::-webkit-outer-spin-button,
+        .form-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--blue);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 3px rgba(84, 104, 255, 0.15);
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            pointer-events: none;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .results-card {
+            background: linear-gradient(135deg, rgba(84,104,255,0.1), rgba(142,67,231,0.06));
+            border: 1px solid rgba(84,104,255,0.2);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-value {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .lost-metric {
+            margin-top: 24px;
+            padding: 24px;
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .lost-metric-title {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--red);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .lost-metric-value {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .lost-metric-sub {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .lost-leads-box {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(251, 146, 60, 0.1);
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .lost-leads-title {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--orange);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .lost-leads-value {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .disclaimer {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 24px;
+            font-style: italic;
+            text-align: center;
+            line-height: 1.5;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .info-section {
+            margin-top: 64px;
+        }
+
+        .info-section h2 {
+            text-align: center;
+            font-size: 28px;
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .info-section > p {
+            text-align: center;
+            color: var(--muted);
+            margin-bottom: 32px;
+            font-size: 16px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .info-card {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .info-card:hover {
+            background: var(--surface-hover);
+            transform: translateY(-2px);
+        }
+
+        .info-card h3 {
+            font-size: 18px;
+            color: #ffffff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 600;
+        }
+
+        .info-card p {
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.6;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .cta-block {
+            background: linear-gradient(135deg, rgba(84,104,255,0.15), rgba(142,67,231,0.1));
+            border: 1px solid rgba(84,104,255,0.2);
+            color: #ffffff;
+            padding: 48px 32px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin-top: 64px;
+        }
+
+        .cta-block h2 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .cta-block p {
+            color: var(--text);
+            margin-bottom: 32px;
+            font-size: 16px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            background: var(--blue);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(84, 104, 255, 0.4);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .btn:hover {
+            background: #4354e0;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(84, 104, 255, 0.5);
+        }
+
+        .guarantees {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 32px;
+            font-size: 14px;
+            color: var(--muted);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .guarantee-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .check-icon {
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 15, 44, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            transform: translateY(18px);
+            transition: transform 0.25s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: #050f2c;
+        }
+
+        .modal-overlay.open .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 14px; right: 14px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: #f7f8fc;
+            color: #4a5577;
+            font-size: 15px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            border: none;
+            line-height: 1;
+            transition: background 0.15s;
+        }
+
+        .modal-close:hover { background: #d4d8e6; }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #050f2c;
+            margin-bottom: 6px;
+            line-height: 1.2;
+            padding-right: 24px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .modal-sub {
+            font-size: 15px;
+            color: #4a5577;
+            margin-bottom: 24px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-fields { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+        .form-field { display: flex; flex-direction: column; gap: 6px; }
+
+        .modal-card .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #050f2c;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .modal-card .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 1px solid #d4d8e6;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #050f2c;
+            transition: all 0.2s;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .modal-card .form-input:focus {
+            outline: none;
+            border-color: #5468ff;
+            box-shadow: 0 0 0 3px rgba(84, 104, 255, 0.15);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #5468ff, #8e43e7);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 14px rgba(84, 104, 255, 0.3);
+            transition: all 0.2s;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .btn-gradient:hover {
+            box-shadow: 0 8px 20px rgba(84, 104, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-gradient:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-note {
+            font-size: 12px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-note a { color: #5468ff; text-decoration: underline; }
+
+        .modal-success {
+            display: none;
+            text-align: center;
+            padding: 24px 0;
+        }
+
+        .modal-success.show { display: block; }
+
+        .form-success-icon { font-size: 48px; margin-bottom: 16px; }
+        .form-success-title { font-size: 24px; font-weight: 700; color: #050f2c; margin-bottom: 8px; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .form-success-text { font-size: 15px; color: #4a5577; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .form-success-text a { color: #5468ff; font-weight: 600; }
+
+        .form-telegram {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #4a5577;
+            text-align: center;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .form-telegram a { color: #5468ff; font-weight: 600; }
+
+        @media (max-width: 600px) {
+            .modal-card { padding: 28px 20px; }
+            .modal-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-top">
+        <a href="https://aichat33.ru/" class="navbar-logo">aichat33</a>
+    </div>
+
+    <div class="header-title">
+        <h1>Сколько вы теряете без ИИ-консультанта?</h1>
+
+        <div class="stats-bar">
+            <span>🚀 6 500+ сайтов</span>
+            <span>📈 +47–120% к заявкам</span>
+            <span>💬 60–74% диалогов → лид</span>
+        </div>
+    </div>
+
+    <div class="calculator-wrapper">
+        <div class="card">
+            <div class="card-title">🌐 Введите данные вашего бизнеса</div>
+
+            <div class="form-group">
+                <label class="form-label" for="visitors">Количество посетителей сайта в месяц</label>
+                <div class="input-wrapper">
+                    <input type="text" id="visitors" class="form-input" inputmode="numeric" placeholder="Например: 5000" value="5000">
+                    <span class="input-suffix">чел</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="currentConv">Текущая конверсия сайта в заявку</label>
+                <div class="input-wrapper">
+                    <input type="text" id="currentConv" class="form-input" inputmode="decimal" placeholder="Например: 2.5" value="2.5">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="avgCheck">Средний чек или прибыль с одной продажи</label>
+                <div class="input-wrapper">
+                    <input type="text" id="avgCheck" class="form-input" inputmode="numeric" placeholder="Например: 15000" value="15000">
+                    <span class="input-suffix">₽</span>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                * Расчёты основаны на введённых данных. Реальный прирост конверсии зависит от ниши, качества трафика и настройки ИИ-консультанта. Средний рост по клиентам aichat33 — 60% и более.
+            </div>
+        </div>
+
+        <div class="card results-card">
+            <div class="card-title">📊 Ваша упущенная выгода</div>
+
+            <div class="result-row">
+                <span class="result-label">Текущее количество заявок в месяц</span>
+                <span class="result-value" id="currentLeads">0</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Потенциальное количество заявок с ИИ (+60%)</span>
+                <span class="result-value" id="potentialLeads" style="color: var(--green);">0</span>
+            </div>
+
+            <div class="lost-leads-box">
+                <div class="lost-leads-title">📉 Упущенные лиды в месяц</div>
+                <div class="lost-leads-value" id="lostLeads">0</div>
+                <div class="lost-metric-sub">заявок, которые мог бы обработать ИИ</div>
+            </div>
+
+            <div class="lost-metric">
+                <div class="lost-metric-title">💸 Упущенная прибыль в месяц</div>
+                <div class="lost-metric-value" id="lostProfitMonth">0 ₽</div>
+                <div class="lost-metric-sub">Упущенная прибыль в год: <strong id="lostProfitYear" style="color: #ffffff;">0 ₽</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h2>📋 Откуда берутся эти упущенные заявки?</h2>
+        <p>ИИ-консультант делает 3 вещи, которые менеджеру физически недоступны</p>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🌙 Перехватывает ночные и выходные запросы</h3>
+                <p>34% диалогов происходит ночью или в выходные — когда менеджеры недоступны. ИИ отвечает мгновенно и собирает контакт, пока конкуренты спят.</p>
+            </div>
+            <div class="info-card">
+                <h3>⚡ Параллельно отвечает десяткам клиентов</h3>
+                <p>Менеджер физически не может вести 20 диалогов одновременно в пиковые часы. ИИ — может. Ни один горячий запрос не остаётся без ответа.</p>
+            </div>
+            <div class="info-card">
+                <h3>💬 Доводит до контакта сомневающихся</h3>
+                <p>70% посетителей уходят с сайта без заявки. ИИ удерживает их, снимает возражения и мягко подводит к оставлению контактов.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-block">
+        <h2>🎯 Хватит терять прибыль. Запустите ИИ-консультанта.</h2>
+        <p>Покажем на демо за 30 минут, как ИИ будет работать именно на вашем сайте и сколько заявок он принесет. Менеджер свяжется в течение часа.</p>
+        <button class="btn open-modal-btn">Записаться на бесплатное демо →</button>
+
+        <div class="guarantees">
+            <div class="guarantee-item"><span class="check-icon">✓</span> Соответствует 152-ФЗ</div>
+            <div class="guarantee-item"><span class="check-icon">✓</span> Хостинг в РФ</div>
+            <div class="guarantee-item"><span class="check-icon">✓</span> Без программистов</div>
+            <div class="guarantee-item"><span class="check-icon">✓</span> Установка за 1 день</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="lead-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Оставить заявку">
+    <button class="modal-close" id="modal-close" aria-label="Закрыть">✕</button>
+
+    <div id="modal-body">
+      <div class="modal-title" id="modal-title">Сделаем демо под ваш сайт бесплатно</div>
+      <p class="modal-sub" id="modal-sub">Оставьте заявку — мы с вами свяжемся</p>
+
+      <form id="modal-form" novalidate>
+        <div class="form-fields">
+          <div class="form-field">
+            <label class="form-label" for="m-name">👤 Ваше имя</label>
+            <input class="form-input" type="text" id="m-name" name="name" placeholder="Иван Иванов" required />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="m-phone">📞 Телефон</label>
+            <input class="form-input" type="tel" id="m-phone" name="phone" placeholder="+7 900 000-00-00" required />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="m-website">🌐 Адрес сайта</label>
+            <input class="form-input" type="text" id="m-website" name="website" placeholder="example.ru" />
+          </div>
+        </div>
+        <button type="submit" class="btn-gradient" id="modal-submit">Оставить заявку</button>
+        <p class="form-note">Нажимая кнопку, вы соглашаетесь на обработку персональных данных в соответствии с <a href="https://aichat33.ru/privacy" target="_blank">политикой конфиденциальности</a>.</p>
+      </form>
+
+      <div class="form-telegram">
+        💬 <strong>Не любите формы?</strong><br>
+        <a href="https://t.me/nikita_guzovskiy" target="_blank">Напишите напрямую в Telegram</a>
+      </div>
+    </div>
+
+    <div class="modal-success" id="modal-success">
+      <div class="form-success-icon">🎉</div>
+      <div class="form-success-title">Заявка отправлена!</div>
+      <p class="form-success-text">Мы с вами свяжемся. Или напишите прямо сейчас: <a href="https://t.me/nikita_guzovskiy" target="_blank">@nikita_guzovskiy</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+    function formatNumber(num) {
+        return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    function parseValue(id) {
+        const val = document.getElementById(id).value;
+        return parseFloat(val.replace(/\s/g, '').replace(',', '.')) || 0;
+    }
+
+    function calculate() {
+        const visitors = parseValue('visitors');
+        const currentConv = parseValue('currentConv');
+        const avgCheck = parseValue('avgCheck');
+
+        const currentConvDecimal = currentConv / 100;
+        const currentLeads = visitors * currentConvDecimal;
+        const growthFactor = 0.60;
+        const lostLeads = currentLeads * growthFactor;
+        const potentialLeads = currentLeads + lostLeads;
+        const lostProfitMonth = lostLeads * avgCheck;
+        const lostProfitYear = lostProfitMonth * 12;
+
+        document.getElementById('currentLeads').textContent = formatNumber(currentLeads);
+        document.getElementById('potentialLeads').textContent = formatNumber(potentialLeads);
+        document.getElementById('lostLeads').textContent = formatNumber(lostLeads);
+        document.getElementById('lostProfitMonth').textContent = formatNumber(lostProfitMonth) + " ₽";
+        document.getElementById('lostProfitYear').textContent = formatNumber(lostProfitYear) + " ₽";
+    }
+
+    const inputs = ['visitors', 'currentConv', 'avgCheck'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', calculate);
+
+        if (id === 'visitors' || id === 'avgCheck') {
+            el.addEventListener('blur', function() {
+                const val = parseValue(id);
+                if (val > 0) {
+                    this.value = formatNumber(val);
+                }
+            });
+            el.addEventListener('focus', function() {
+                this.value = this.value.replace(/\s/g, '');
+            });
+        }
+    });
+
+    calculate();
+
+    const modal = document.getElementById('lead-modal');
+    const openModalBtns = document.querySelectorAll('.open-modal-btn');
+    const closeModalBtn = document.getElementById('modal-close');
+    const modalBody = document.getElementById('modal-body');
+    const modalSuccess = document.getElementById('modal-success');
+    const modalForm = document.getElementById('modal-form');
+
+    openModalBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            modalBody.style.display = 'block';
+            modalSuccess.classList.remove('show');
+            modalForm.reset();
+        });
+    });
+
+    function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    closeModalBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    modalForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('modal-submit');
+        const originalText = submitBtn.textContent;
+
+        submitBtn.textContent = 'Отправка...';
+        submitBtn.disabled = true;
+
+        setTimeout(() => {
+            modalBody.style.display = 'none';
+            modalSuccess.classList.add('show');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }, 1200);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+            closeModal();
+        }
+    });
+</script>
+
+</body>
+</html>
